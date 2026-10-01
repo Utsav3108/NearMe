@@ -141,6 +141,32 @@ struct Home: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            Task {
+                let network = Network()
+                let apiKey = mapsAPI
+                
+                do {
+                    let places = try await network.fetchPlaceDetails(
+                        query: "Kankaria Lake, Ahmedabad",
+                        apiKey: apiKey
+                    )
+                    
+                    if let lake = places.first {
+                        print("Name: \(lake.displayName?.text ?? "N/A")")
+                        print("Address: \(lake.formattedAddress ?? "N/A")")
+                        print("Rating: \(lake.rating ?? 0.0)")
+                        if let loc = lake.location {
+                            print("Coordinates: \(loc.latitude), \(loc.longitude)")
+                        }
+                    } else {
+                        print("No matching place found.")
+                    }
+                } catch {
+                    print("Error fetching place: \(error.localizedDescription)")
+                }
+            }
+        }
     }
     
     // MARK: 1. Header Section
