@@ -80,8 +80,6 @@ struct GettingStarted: View {
                     
                         
                     }
-                    
-                    
                 }
             }
             .padding(.horizontal, 20)

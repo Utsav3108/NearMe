@@ -34,6 +34,7 @@ struct Home: View {
     // MARK: - State
     @State private var searchText: String = ""
     @State private var selectedCategory: String = "All"
+    @State private var homeVM : HomeVM = HomeVM()
     
     // MARK: - Constants
     private let appOrange = Color(red: 254 / 255, green: 98 / 255, blue: 34 / 255)
@@ -143,28 +144,7 @@ struct Home: View {
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             Task {
-                let network = Network()
-                let apiKey = mapsAPI
-                
-                do {
-                    let places = try await network.fetchPlaceDetails(
-                        query: "Kankaria Lake, Ahmedabad",
-                        apiKey: apiKey
-                    )
-                    
-                    if let lake = places.first {
-                        print("Name: \(lake.displayName?.text ?? "N/A")")
-                        print("Address: \(lake.formattedAddress ?? "N/A")")
-                        print("Rating: \(lake.rating ?? 0.0)")
-                        if let loc = lake.location {
-                            print("Coordinates: \(loc.latitude), \(loc.longitude)")
-                        }
-                    } else {
-                        print("No matching place found.")
-                    }
-                } catch {
-                    print("Error fetching place: \(error.localizedDescription)")
-                }
+                await homeVM.fetchPlaceDetails(placeAddress: "Kankaria Lake, Ahmedabad")
             }
         }
     }
