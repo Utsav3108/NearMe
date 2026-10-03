@@ -28,6 +28,7 @@ class GettingStartedVM {
     
     func navigateToSignIn(){
         user = createUser()
+        UserDefaults.standard.set(true, forKey: "isLogin")
     }
     
     private func createUser() -> User {
