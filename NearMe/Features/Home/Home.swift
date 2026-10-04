@@ -153,6 +153,12 @@ struct Home: View {
                     distanceText: homeVM.distanceText(for: place),
                     recommendationReason: nil,
                     onOpen: {
+                        
+                        Task {
+                            print("details are coming for \(place.id)....")
+                            await homeVM.getDetails(id: place.id)
+                        }
+                        
                         Task {
                             await homeVM.recordOpen(place: place, section: section, position: index)
                         }
@@ -163,6 +169,7 @@ struct Home: View {
                         await homeVM.recordImpression(place: place, section: section, position: index)
                     }
                 }
+
             }
         }
     }

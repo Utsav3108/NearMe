@@ -26,6 +26,10 @@ class Network {
             throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: errorText])
         }
         
+        let datajson = try? JSONSerialization.jsonObject(with: data)
+        
+        print("response json: ", datajson)
+        
         return try JSONDecoder().decode(T.self, from: data)
     }
 

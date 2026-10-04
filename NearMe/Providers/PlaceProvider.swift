@@ -12,6 +12,8 @@ protocol PlacesRepository: Sendable {
         query: String,
         around coordinate: PlaceCoordinate
     ) async throws -> [PlaceSummary]
+    
+    func getPlaceDetails(id: String) async throws -> PlaceSummary?
 }
 
 enum NearbyRankPreference: String, Encodable, Sendable {
@@ -49,7 +51,7 @@ private struct GooglePlace: Decodable {
             reviewCount: userRatingCount,
             isOpenNow: currentOpeningHours?.openNow,
             businessStatus: businessStatus,
-            primaryPhoto: photos?.first?.makePhoto()
+            primaryPhoto: photos?.first?.makePhoto(id: id)
         )
     }
 }
@@ -73,8 +75,9 @@ private struct GooglePhoto: Decodable {
     let heightPx: Int?
     let authorAttributions: [GooglePhotoAttribution]?
 
-    func makePhoto() -> PlacePhoto {
+    func makePhoto(id: String) -> PlacePhoto {
         PlacePhoto(
+            placeId: id,
             resourceName: name,
             width: widthPx,
             height: heightPx,
@@ -90,11 +93,11 @@ private struct GooglePhotoAttribution: Decodable {
     let uri: String?
 }
 
-private extension PlacePhoto {
-    init(_ photo: GooglePhoto) {
-        self = photo.makePhoto()
-    }
-}
+//private extension PlacePhoto {
+//    init(_ photo: GooglePhoto) {
+//        self = photo.makePhoto()
+//    }
+//}
 
 private struct NearbyRequest: Encodable {
     struct LocationRestriction: Encodable {
@@ -133,6 +136,15 @@ final class PlaceProvider: PlacesRepository, Sendable {
     init(network: Network = Network()) {
         self.network = network
     }
+    
+    func getPlaceDetails(id: String) async throws -> PlaceSummary? {
+        
+        
+        let details = try await performFetch(endpoint: "https://places.googleapis.com/v1/places/\(id)")
+        
+        
+        return details.first
+    }
 
     func nearbyPlaces(
         around coordinate: PlaceCoordinate,
@@ -167,7 +179,7 @@ final class PlaceProvider: PlacesRepository, Sendable {
 
     private func performSearch<Request: Encodable>(
         endpoint: String,
-        body: Request
+        body: Request?
     ) async throws -> [PlaceSummary] {
         guard let url = URL(string: endpoint) else {
             throw URLError(.badURL)
@@ -186,4 +198,29 @@ final class PlaceProvider: PlacesRepository, Sendable {
         let response: PlaceSearchResponse = try await network.perform(request: request)
         return (response.places ?? []).compactMap { $0.summary() }
     }
+    
+    private func performFetch(
+        endpoint: String
+    ) async throws -> [PlaceSummary] {
+        guard let url = URL(string: endpoint) else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(Secrets.googleMapsAPIKey, forHTTPHeaderField: "X-Goog-Api-Key")
+        request.setValue(
+            "id,displayName,formattedAddress,location,types,primaryTypeDisplayName,googleMapsUri,internationalPhoneNumber,websiteUri,regularOpeningHours,rating,userRatingCount,priceLevel,reviews,photos",
+            forHTTPHeaderField: "X-Goog-FieldMask"
+        )
+        
+
+        let response: PlaceSearchResponse = try await network.perform(request: request)
+        return (response.places ?? []).compactMap { $0.summary() }
+    }
+    
+    
+    
+    
 }

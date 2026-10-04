@@ -54,6 +54,7 @@ struct PhotoAttribution: Hashable, Sendable {
 }
 
 struct PlacePhoto: Hashable, Sendable {
+    let placeId : String
     /// Short-lived Google photo resource. Keep this in memory only.
     let resourceName: String
     let width: Int?
