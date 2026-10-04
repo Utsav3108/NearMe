@@ -83,15 +83,17 @@ final class HomeVM {
         }
     }
     
-    func getDetails(id: String) async {
+    func getDetails(id: String) async -> PlaceDDetail? {
         
         do {
-            _ = try await placeProvider.getPlaceDetails(id: id)
-        } catch {
+            let detail = try await placeProvider.getPlaceDetails(id: id)
             
+            return detail
+        } catch {
+           print("no serialized...")
         }
         
-        
+        return nil
     }
 
     func reloadHome() async {

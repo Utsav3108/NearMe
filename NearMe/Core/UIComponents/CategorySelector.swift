@@ -46,7 +46,7 @@ struct CategorySelector: View {
                             Text(category.name)
                                 .font(
                                     .system(
-                                        size: 12,
+                                        size: 11,
                                         weight: isSelected ? .semibold : .medium
                                     )
                                 )

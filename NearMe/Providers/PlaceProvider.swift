@@ -13,7 +13,7 @@ protocol PlacesRepository: Sendable {
         around coordinate: PlaceCoordinate
     ) async throws -> [PlaceSummary]
     
-    func getPlaceDetails(id: String) async throws -> PlaceSummary?
+    func getPlaceDetails(id: String) async throws -> PlaceDDetail
 }
 
 enum NearbyRankPreference: String, Encodable, Sendable {
@@ -137,13 +137,13 @@ final class PlaceProvider: PlacesRepository, Sendable {
         self.network = network
     }
     
-    func getPlaceDetails(id: String) async throws -> PlaceSummary? {
+    func getPlaceDetails(id: String) async throws -> PlaceDDetail {
         
         
         let details = try await performFetch(endpoint: "https://places.googleapis.com/v1/places/\(id)")
         
         
-        return details.first
+        return details
     }
 
     func nearbyPlaces(
@@ -201,7 +201,7 @@ final class PlaceProvider: PlacesRepository, Sendable {
     
     private func performFetch(
         endpoint: String
-    ) async throws -> [PlaceSummary] {
+    ) async throws -> PlaceDDetail {
         guard let url = URL(string: endpoint) else {
             throw URLError(.badURL)
         }
@@ -216,8 +216,8 @@ final class PlaceProvider: PlacesRepository, Sendable {
         )
         
 
-        let response: PlaceSearchResponse = try await network.perform(request: request)
-        return (response.places ?? []).compactMap { $0.summary() }
+        let response: PlaceDDetail = try await network.perform(request: request)
+        return response
     }
     
     

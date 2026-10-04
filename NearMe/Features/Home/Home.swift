@@ -27,6 +27,8 @@ struct Home: View {
             CategoryItem(name: "Attractions", icon: "binoculars.fill")
         ]
     }
+    
+    @State private var selectedPlaceDetail : PlaceDDetail? = nil
 
     var body: some View {
         ZStack {
@@ -65,6 +67,7 @@ struct Home: View {
                 .padding(.top, 12)
                 .padding(.bottom, 24)
             }
+            
         }
         .toolbar(.hidden, for: .navigationBar)
         .task {
@@ -74,6 +77,11 @@ struct Home: View {
         .onChange(of: selectedCategory) { _, category in
             homeVM.select(category: category)
         }
+        .sheet(item: $selectedPlaceDetail) { place in
+            PlaceDetailView(place: place)
+        }
+        
+        
     }
 
     private var categoryBinding: Binding<String> {
@@ -156,7 +164,9 @@ struct Home: View {
                         
                         Task {
                             print("details are coming for \(place.id)....")
-                            await homeVM.getDetails(id: place.id)
+                            selectedPlaceDetail = await homeVM.getDetails(id: place.id)
+                            
+                            print("selected place detail: ", selectedPlaceDetail?.name ?? "----")
                         }
                         
                         Task {
@@ -169,6 +179,7 @@ struct Home: View {
                         await homeVM.recordImpression(place: place, section: section, position: index)
                     }
                 }
+                
 
             }
         }

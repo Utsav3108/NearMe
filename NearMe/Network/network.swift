@@ -14,7 +14,18 @@ class Network {
     var session: URLSession
     
     init() {
-        self.session = URLSession(configuration: .ephemeral)
+        let configuration = URLSessionConfiguration.default
+
+        let cache = URLCache(
+            memoryCapacity: 50 * 1024 * 1024,      // 50 MB
+            diskCapacity: 200 * 1024 * 1024,       // 200 MB
+            diskPath: "network-cache"
+        )
+
+        configuration.urlCache = cache
+        configuration.requestCachePolicy = .returnCacheDataElseLoad
+
+        self.session = URLSession(configuration: configuration)
     }
     
     func perform<T: Decodable>(request: URLRequest) async throws -> T {
@@ -30,7 +41,13 @@ class Network {
         
         print("response json: ", datajson)
         
-        return try JSONDecoder().decode(T.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        let result = try decoder.decode(T.self, from: data)
+        
+        
+        return result
     }
 
 }
