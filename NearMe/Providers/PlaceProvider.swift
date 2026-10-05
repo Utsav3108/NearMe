@@ -69,11 +69,15 @@ private struct OpeningHours: Decodable {
     let openNow: Bool?
 }
 
-private struct GooglePhoto: Decodable {
+struct GooglePhoto: Codable, Sendable, Identifiable {
     let name: String
     let widthPx: Int?
     let heightPx: Int?
     let authorAttributions: [GooglePhotoAttribution]?
+    
+    var id: String {
+        name
+    }
 
     func makePhoto(id: String) -> PlacePhoto {
         PlacePhoto(
@@ -88,7 +92,7 @@ private struct GooglePhoto: Decodable {
     }
 }
 
-private struct GooglePhotoAttribution: Decodable {
+struct GooglePhotoAttribution: Codable {
     let displayName: String
     let uri: String?
 }

@@ -1,32 +1,66 @@
-//
-//  OptionTag.swift
-//  NearMe
-//
-//  Created by Utsav Hitendrabhai Pandya on 04/10/26.
-//
-
 import SwiftUI
 
-struct OptionTag : View {
-    
-    @State var isActive : Bool
-    
-    var body: some View {
-        VStack(spacing: 10) {
-            
-            Image(systemName: "car")
-                .foregroundStyle(isActive ? .white : .blue)
-            Text("Directions")
-                .foregroundStyle(isActive ? .white : .blue)
-                .font(.footnote.bold())
-            
-        }
-        .padding()
-        .background( isActive ? .blue : .gray.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-        
-    }
-}
+struct OptionTag: View {
+    let title: String
+    let icon: String
+    let activeIcon: String?
+    let isActive: Bool
+    let isPrimary: Bool
+    let action: () -> Void
 
-#Preview {
-    OptionTag(isActive: true)
+    init(
+        title: String,
+        icon: String,
+        activeIcon: String? = nil,
+        isActive: Bool = false,
+        isPrimary: Bool = false,
+        action: @escaping () -> Void
+    ) {
+        self.title = title
+        self.icon = icon
+        self.activeIcon = activeIcon
+        self.isActive = isActive
+        self.isPrimary = isPrimary
+        self.action = action
+    }
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 7) {
+                Image(systemName: currentIcon)
+                    .font(.headline)
+
+                Text(title)
+                    .font(.caption.weight(.medium))
+            }
+            .foregroundStyle(foregroundColor)
+            .frame(maxWidth: .infinity)
+            .frame(height: 72)
+            .background(
+                backgroundColor,
+                in: RoundedRectangle(cornerRadius: 18)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var currentIcon: String {
+        if isActive, let activeIcon {
+            return activeIcon
+        }
+
+        return icon
+    }
+
+    private var foregroundColor: Color {
+        isPrimary || isActive
+            ? .white
+            : .accentColor
+    }
+
+    private var backgroundColor: Color {
+        isPrimary || isActive
+            ? .accentColor
+            : Color(uiColor: .secondarySystemBackground)
+    }
 }

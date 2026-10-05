@@ -16,7 +16,7 @@ struct PlaceDDetail: Codable, Sendable, Identifiable {
     let displayName: PlaceDisplayName
     let formattedAddress: String?
     let location: PlaceLocation
-    let photos: [PlaceDPhoto]
+    let photos: [GooglePhoto]
     let primaryTypeDisplayName: PlaceDisplayName?
     let rating: Double?
     let reviews: [PlaceReview]
@@ -49,28 +49,6 @@ struct PlaceLocation: Codable, Sendable {
     let latitude: Double
     let longitude: Double
 }
-
-
-// MARK: - Photo
-struct PlaceDPhoto: Codable, Sendable, Identifiable {
-
-    let name: String
-    let widthPx: Int
-    let heightPx: Int
-    let authorAttributions: [PlaceAuthorAttribution]
-    let googleMapsURI: URL?
-    let flagContentURI: URL?
-
-    var id: String {
-        name
-    }
-
-    var aspectRatio: Double {
-        guard heightPx > 0 else { return 1 }
-        return Double(widthPx) / Double(heightPx)
-    }
-}
-
 
 // MARK: Review
 

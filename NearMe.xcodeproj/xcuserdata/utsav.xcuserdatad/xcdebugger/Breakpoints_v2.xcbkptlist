@@ -14,8 +14,8 @@
             filePath = "NearMe/Providers/PlaceProvider.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "220"
-            endingLineNumber = "220"
+            startingLineNumber = "224"
+            endingLineNumber = "224"
             landmarkName = "performFetch(endpoint:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -30,8 +30,8 @@
             filePath = "NearMe/Providers/PlaceProvider.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "206"
-            endingLineNumber = "206"
+            startingLineNumber = "210"
+            endingLineNumber = "210"
             landmarkName = "performFetch(endpoint:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -46,68 +46,10 @@
             filePath = "NearMe/Providers/PlaceProvider.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "143"
-            endingLineNumber = "143"
+            startingLineNumber = "147"
+            endingLineNumber = "147"
             landmarkName = "getPlaceDetails(id:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "082F8110-4AD1-42C5-9127-AEEE8C0C5F92 - 8357127b7cdf9d13"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for NearMe.PlaceProvider.getPlaceDetails(id: Swift.String) async throws -&gt; NearMe.PlaceDDetail"
-                  moduleName = "NearMe.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/utsav/Documents/Projects/NearMe/NearMe/Providers/PlaceProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "143"
-                  endingLineNumber = "143">
-               </Location>
-               <Location
-                  uuid = "082F8110-4AD1-42C5-9127-AEEE8C0C5F92 - d23b68a95ea1ffae"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(2) await resume partial function for NearMe.PlaceProvider.getPlaceDetails(id: Swift.String) async throws -&gt; NearMe.PlaceDDetail"
-                  moduleName = "NearMe.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/utsav/Documents/Projects/NearMe/NearMe/Providers/PlaceProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "143"
-                  endingLineNumber = "143">
-               </Location>
-               <Location
-                  uuid = "082F8110-4AD1-42C5-9127-AEEE8C0C5F92 - d23b68a95ea1ffae"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(2) await resume partial function for NearMe.PlaceProvider.getPlaceDetails(id: Swift.String) async throws -&gt; NearMe.PlaceDDetail"
-                  moduleName = "NearMe.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/utsav/Documents/Projects/NearMe/NearMe/Providers/PlaceProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "143"
-                  endingLineNumber = "143">
-               </Location>
-               <Location
-                  uuid = "082F8110-4AD1-42C5-9127-AEEE8C0C5F92 - bd73b14040fa1362"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for NearMe.PlaceProvider.getPlaceDetails(id: Swift.String) async throws -&gt; NearMe.PlaceDDetail"
-                  moduleName = "NearMe.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/utsav/Documents/Projects/NearMe/NearMe/Providers/PlaceProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "143"
-                  endingLineNumber = "143">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -120,8 +62,8 @@
             filePath = "NearMe/Providers/PlaceProvider.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "205"
-            endingLineNumber = "205"
+            startingLineNumber = "209"
+            endingLineNumber = "209"
             landmarkName = "performFetch(endpoint:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -136,8 +78,8 @@
             filePath = "NearMe/Providers/PlaceProvider.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "211"
-            endingLineNumber = "211"
+            startingLineNumber = "215"
+            endingLineNumber = "215"
             landmarkName = "performFetch(endpoint:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -152,54 +94,10 @@
             filePath = "NearMe/Providers/PlaceProvider.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "218"
-            endingLineNumber = "218"
+            startingLineNumber = "222"
+            endingLineNumber = "222"
             landmarkName = "performFetch(endpoint:)"
             landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "C16F601F-CF3D-4DF3-800F-9491F5D57017 - 17f5e6bdb435ddad"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(1) suspend resume partial function for NearMe.PlaceProvider.performFetch(endpoint: Swift.String) async throws -&gt; NearMe.PlaceDDetail"
-                  moduleName = "NearMe.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/utsav/Documents/Projects/NearMe/NearMe/Providers/PlaceProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "219"
-                  endingLineNumber = "219">
-               </Location>
-               <Location
-                  uuid = "C16F601F-CF3D-4DF3-800F-9491F5D57017 - a417ccc611c06053"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(2) await resume partial function for NearMe.PlaceProvider.performFetch(endpoint: Swift.String) async throws -&gt; NearMe.PlaceDDetail"
-                  moduleName = "NearMe.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/utsav/Documents/Projects/NearMe/NearMe/Providers/PlaceProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "219"
-                  endingLineNumber = "219">
-               </Location>
-               <Location
-                  uuid = "C16F601F-CF3D-4DF3-800F-9491F5D57017 - ed0927d746ab7748"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "(4) suspend resume partial function for NearMe.PlaceProvider.performFetch(endpoint: Swift.String) async throws -&gt; NearMe.PlaceDDetail"
-                  moduleName = "NearMe.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/utsav/Documents/Projects/NearMe/NearMe/Providers/PlaceProvider.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "219"
-                  endingLineNumber = "219">
-               </Location>
-            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

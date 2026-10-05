@@ -16,6 +16,10 @@ struct PlaceDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedPhotoIndex = 0
+    
+    @State private var isSaved = false
+    
+    @State private var currentOptionSelectedIndex : Int = 0
 
     private var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(
@@ -34,7 +38,6 @@ struct PlaceDetailView: View {
                     overviewSection
                     actionSection
                     locationSection
-                    photosSection
                     reviewsSection
                 }
                 .padding(.top, 24)
@@ -65,13 +68,12 @@ private extension PlaceDetailView {
                 ) { index, photo in
 
                     // Replace this with your Google Places photo URL builder.
-                    Color(uiColor: .secondarySystemBackground)
-                        .overlay {
-                            Image(systemName: "photo")
-                                .font(.largeTitle)
-                                .foregroundStyle(.secondary)
-                        }
-                        .tag(index)
+                    PlaceImage(
+                        photo: photo.makePhoto(
+                            id: "\(place.id)\(index)"
+                        )
+                    )
+                    .tag(index)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -198,68 +200,101 @@ private extension PlaceDetailView {
     var actionSection: some View {
         HStack(spacing: 12) {
 
-            actionButton(
+            OptionTag(
                 title: "Directions",
                 icon: "arrow.triangle.turn.up.right.diamond.fill",
-                primary: true
+                isPrimary: currentOptionSelectedIndex == 0
             ) {
+                currentOptionSelectedIndex = 0
                 openInAppleMaps()
             }
 
-            actionButton(
+            OptionTag(
                 title: "Call",
-                icon: "phone.fill"
+                icon: "phone.fill",
+                isPrimary: currentOptionSelectedIndex == 1
             ) {
-                // Phone number isn't present in this API response.
+                currentOptionSelectedIndex = 1
+                callPlace()
             }
 
-            actionButton(
+            OptionTag(
                 title: "Save",
-                icon: "bookmark"
+                icon: "bookmark",
+                activeIcon: "bookmark.fill",
+                isPrimary: currentOptionSelectedIndex == 2
             ) {
-                // Save action
+                currentOptionSelectedIndex = 2
+                toggleSave()
             }
 
-            actionButton(
-                title: "More",
-                icon: "ellipsis"
-            ) {
-                // More actions
-            }
+            moreMenu
         }
         .padding(.horizontal, 20)
     }
+    
+    private func callPlace() {
+        guard let phoneNumber = .some("3453333333333") else {
+            return
+        }
 
-    func actionButton(
-        title: String,
-        icon: String,
-        primary: Bool = false,
-        action: @escaping () -> Void
-    ) -> some View {
+        let digits = phoneNumber.filter {
+            $0.isNumber || $0 == "+"
+        }
 
-        Button(action: action) {
+        guard let url = URL(string: "tel://\(digits)") else {
+            return
+        }
+
+        UIApplication.shared.open(url)
+    }
+
+    private func toggleSave() {
+        if isSaved {
+            //savedPlaces.remove(place.id)
+        } else {
+            //savedPlaces.insert(place.id)
+        }
+
+        isSaved.toggle()
+    }
+    
+    private var moreMenu: some View {
+        Menu {
+            Button {
+                sharePlace()
+            } label: {
+                Label("Share Place", systemImage: "square.and.arrow.up")
+            }
+
+            Button {
+                openInAppleMaps()
+            } label: {
+                Label("Open in Apple Maps", systemImage: "map")
+            }
+
+            Divider()
+
+            Button {
+                //reportPlace()
+            } label: {
+                Label("Report an Issue", systemImage: "exclamationmark.bubble")
+            }
+
+        } label: {
             VStack(spacing: 7) {
-
-                Image(systemName: icon)
+                Image(systemName: "ellipsis")
                     .font(.headline)
 
-                Text(title)
+                Text("More")
                     .font(.caption.weight(.medium))
             }
-            .foregroundStyle(
-                primary
-                    ? Color.white
-                    : Color.accentColor
-            )
+            .foregroundStyle(Color.accentColor)
             .frame(maxWidth: .infinity)
             .frame(height: 72)
             .background(
-                primary
-                    ? Color.accentColor
-                    : Color(uiColor: .secondarySystemBackground)
-            )
-            .clipShape(
-                RoundedRectangle(cornerRadius: 18)
+                Color(uiColor: .secondarySystemBackground),
+                in: RoundedRectangle(cornerRadius: 18)
             )
         }
     }
@@ -330,56 +365,6 @@ private extension PlaceDetailView {
             )
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Photos
-
-private extension PlaceDetailView {
-
-    var photosSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-
-            sectionHeader(
-                title: "Photos",
-                icon: "photo.on.rectangle"
-            )
-
-            ScrollView(
-                .horizontal,
-                showsIndicators: false
-            ) {
-                HStack(spacing: 10) {
-
-                    ForEach(
-                        Array(place.photos.enumerated()),
-                        id: \.element.id
-                    ) { _, photo in
-
-                        photoPlaceholder(photo)
-                    }
-                }
-            }
-        }
-        .padding(.horizontal, 20)
-    }
-
-    @ViewBuilder
-    func photoPlaceholder(
-        _ photo: PlaceDPhoto
-    ) -> some View {
-
-        // Plug your Google Places photo URL here.
-        Rectangle()
-            .fill(Color(uiColor: .secondarySystemBackground))
-            .frame(width: 150, height: 115)
-            .overlay {
-                Image(systemName: "photo")
-                    .foregroundStyle(.secondary)
-            }
-            .clipShape(
-                RoundedRectangle(cornerRadius: 16)
-            )
     }
 }
 
