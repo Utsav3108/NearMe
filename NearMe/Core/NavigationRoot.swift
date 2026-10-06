@@ -37,7 +37,7 @@ struct MainTabView: View {
             .tag(AppTab.home)
 
             tabNavigation(for: .explore) {
-                TabPlaceholderView(tab: .explore)
+                ExploreView()
             }
             .tabItem {
                 Label(AppTab.explore.title, systemImage: AppTab.explore.systemImage)

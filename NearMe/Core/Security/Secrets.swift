@@ -8,9 +8,10 @@
 
 import Foundation
 
-enum Secrets {
+/// Thread-safe provider for bundled application secrets.
+enum Secrets: Sendable {
 
-    private static let plist: [String: Any] = {
+    nonisolated private static let apiKey: String = {
         guard let url = Bundle.main.url(
             forResource: "Secrets",
             withExtension: "plist"
@@ -22,19 +23,15 @@ enum Secrets {
               let plist = try? PropertyListSerialization.propertyList(
                 from: data,
                 format: nil
-              ) as? [String: Any] else {
-            fatalError("Could not read Secrets.plist")
+              ) as? [String: Any],
+              let key = plist["GoogleMapsAPIKey"] as? String else {
+            fatalError("GoogleMapsAPIKey missing or unreadable in Secrets.plist")
         }
 
-        return plist
+        return key
     }()
 
-    static var googleMapsAPIKey: String {
-        guard let value = plist["GoogleMapsAPIKey"] as? String else {
-            fatalError("GoogleMapsAPIKey missing from Secrets.plist")
-        }
-
-        return value
+    nonisolated static var googleMapsAPIKey: String {
+        apiKey
     }
-
 }

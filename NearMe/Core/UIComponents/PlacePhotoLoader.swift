@@ -1,10 +1,15 @@
 import Foundation
 
+/// A thread-safe image fetcher that downloads and caches Google Places photos.
+///
+/// **Concurrency & Discipline:**
+/// Implemented as an `actor` because it coordinates concurrent asynchronous image downloading tasks
+/// across multiple views (Explore grid cells, Home trending cards, Detail hero carousels).
+/// Actor isolation protects its network session and internal coordination state from data races.
 actor PlacePhotoLoader {
     static let shared = PlacePhotoLoader()
 
     private let cache = PhotoCache()
-    
     private let session: URLSession
 
     init() {
@@ -14,20 +19,26 @@ actor PlacePhotoLoader {
         session = URLSession(configuration: configuration)
     }
 
-    func imageData(for photo: PlacePhoto, maxWidth: Int = 420, maxHeight: Int = 280) async throws -> Data {
+    /// Fetches image data for a given `PlacePhoto`, returning cached data if available.
+    ///
+    /// - Parameters:
+    ///   - photo: The `PlacePhoto` describing the Google Places photo resource.
+    ///   - maxWidth: Maximum pixel width requested from Google Places Media API.
+    ///   - maxHeight: Maximum pixel height requested from Google Places Media API.
+    /// - Returns: Raw image `Data`.
+    func imageData(for photo: PlacePhoto, maxWidth: Int = 600, maxHeight: Int = 600) async throws -> Data {
+        let cacheKey = photo.resourceName.isEmpty ? photo.placeId : photo.resourceName
         
-        if let cacheData = await cache.get(key: photo.placeId) {
+        if let cacheData = await cache.get(key: cacheKey) {
             return cacheData
         }
-        
-        
-        
+
         guard let baseURL = URL(string: "https://places.googleapis.com/v1/\(photo.resourceName)/media") else {
             throw URLError(.badURL)
         }
 
         var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)
-        components?.queryItems = await [
+        components?.queryItems = [
             URLQueryItem(name: "maxWidthPx", value: String(maxWidth)),
             URLQueryItem(name: "maxHeightPx", value: String(maxHeight)),
             URLQueryItem(name: "key", value: Secrets.googleMapsAPIKey)
@@ -46,33 +57,37 @@ actor PlacePhotoLoader {
             throw URLError(.badServerResponse)
         }
 
-        // i want the method to return asap, without waiting for cache setting to complete
         Task {
-            await cache.set(key: photo.placeId, data: data)
+            await cache.set(key: cacheKey, data: data)
         }
         
         return data
     }
 }
 
+/// An in-memory cache for downloaded photo bytes.
+///
+/// **Concurrency & Discipline:**
+/// Implemented as an `actor` to guarantee serialized, thread-safe access to the underlying `NSCache`
+/// across concurrent download tasks without needing manual locks or synchronization primitives.
 actor PhotoCache {
-    var cacheDict : NSCache = NSCache<NSString, NSData>()
-    
-    func set(key : String, data: Data){
-        
-        let data = data as NSData
-        let key = key as NSString
-        
-        cacheDict.setObject(data, forKey: key)
+    private let cacheDict: NSCache<NSString, NSData>
+
+    init() {
+        let cache = NSCache<NSString, NSData>()
+        cache.countLimit = 300
+        cache.totalCostLimit = 100 * 1024 * 1024 // 100 MB
+        self.cacheDict = cache
     }
-    
+
+    func set(key: String, data: Data) {
+        let nsData = data as NSData
+        let nsKey = key as NSString
+        cacheDict.setObject(nsData, forKey: nsKey, cost: data.count)
+    }
+
     func get(key: String) -> Data? {
         let nsData = cacheDict.object(forKey: key as NSString)
-        
-        if let data = nsData {
-            return data as Data
-        } else {
-            return nil
-        }
+        return nsData as Data?
     }
 }

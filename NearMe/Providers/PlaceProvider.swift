@@ -1,6 +1,11 @@
 import Foundation
 
 
+/// A thread-safe repository protocol defining operations for retrieving places from the Google Places API.
+///
+/// **Concurrency & Discipline:**
+/// Conforms to `Sendable` so that repository references can be safely shared across tasks and injected
+/// into `@MainActor` ViewModels without actor hopping or data race hazards.
 protocol PlacesRepository: Sendable {
     func nearbyPlaces(
         around coordinate: PlaceCoordinate,
@@ -14,6 +19,17 @@ protocol PlacesRepository: Sendable {
     ) async throws -> [PlaceSummary]
     
     func getPlaceDetails(id: String) async throws -> PlaceDDetail
+
+    /// Retrieves a diverse mix of visual place items (cafes, mountains, parks, attractions both near and far).
+    func explorePlaces(
+        around coordinate: PlaceCoordinate
+    ) async throws -> [ExploreItem]
+
+    /// Searches for places matching a query and returns visual items for the Explore tab grid.
+    func searchExplorePlaces(
+        query: String,
+        around coordinate: PlaceCoordinate
+    ) async throws -> [ExploreItem]
 }
 
 enum NearbyRankPreference: String, Encodable, Sendable {
@@ -53,6 +69,23 @@ private struct GooglePlace: Decodable {
             businessStatus: businessStatus,
             primaryPhoto: photos?.first?.makePhoto(id: id)
         )
+    }
+
+    func exploreItems() -> [ExploreItem] {
+        guard let displayName = displayName?.text,
+              let photos, !photos.isEmpty else { return [] }
+
+        return photos.prefix(2).enumerated().map { index, photo in
+            let placePhoto = photo.makePhoto(id: id)
+            let attribution = placePhoto.attributions.first ?? PhotoAttribution(displayName: displayName, uri: nil)
+            return ExploreItem(
+                id: "\(id)_\(index)_\(photo.name)",
+                placeId: id,
+                placeName: displayName,
+                photo: placePhoto,
+                attribution: attribution
+            )
+        }
     }
 }
 
@@ -97,12 +130,6 @@ struct GooglePhotoAttribution: Codable {
     let uri: String?
 }
 
-//private extension PlacePhoto {
-//    init(_ photo: GooglePhoto) {
-//        self = photo.makePhoto()
-//    }
-//}
-
 private struct NearbyRequest: Encodable {
     struct LocationRestriction: Encodable {
         struct Circle: Encodable {
@@ -134,19 +161,21 @@ private struct TextSearchRequest: Encodable {
     let maxResultCount: Int
 }
 
+/// Concrete implementation of `PlacesRepository` that interfaces with the Google Places API (New).
+///
+/// **Concurrency & Discipline:**
+/// Designed as a `final class: Sendable` because all its state is immutable (`let network: Network`).
+/// By avoiding mutable state, multiple callers can invoke its async methods concurrently across
+/// different tasks and actors without contention or serialization overhead.
 final class PlaceProvider: PlacesRepository, Sendable {
     private let network: Network
 
-    init(network: Network = Network()) {
+    nonisolated init(network: Network = Network()) {
         self.network = network
     }
     
     func getPlaceDetails(id: String) async throws -> PlaceDDetail {
-        
-        
         let details = try await performFetch(endpoint: "https://places.googleapis.com/v1/places/\(id)")
-        
-        
         return details
     }
 
@@ -162,10 +191,11 @@ final class PlaceProvider: PlacesRepository, Sendable {
             rankPreference: rankPreference
         )
 
-        return try await performSearch(
+        let response: PlaceSearchResponse = try await performSearch(
             endpoint: "https://places.googleapis.com/v1/places:searchNearby",
             body: requestBody
         )
+        return (response.places ?? []).compactMap { $0.summary() }
     }
 
     func textSearch(query: String, around coordinate: PlaceCoordinate) async throws -> [PlaceSummary] {
@@ -175,16 +205,127 @@ final class PlaceProvider: PlacesRepository, Sendable {
             maxResultCount: 20
         )
 
-        return try await performSearch(
+        let response: PlaceSearchResponse = try await performSearch(
             endpoint: "https://places.googleapis.com/v1/places:searchText",
             body: requestBody
         )
+        return (response.places ?? []).compactMap { $0.summary() }
+    }
+
+    func explorePlaces(
+        around coordinate: PlaceCoordinate
+    ) async throws -> [ExploreItem] {
+        // Concurrently fetch diverse place buckets to guarantee a rich mix of:
+        // 1. Nearby Cafes & Bakeries (0-8 km)
+        // 2. Local Parks & Outdoor recreation (0-15 km)
+        // 3. Mountains, Viewpoints & Hiking (far & near: 0-45 km)
+        // 4. Regional Attractions & Cultural Landmarks (far & near: 0-50 km)
+        async let cafesTask = fetchNearbyExploreItems(
+            types: ["cafe", "coffee_shop", "bakery"],
+            around: coordinate,
+            radius: 8_000
+        )
+        async let parksTask = fetchNearbyExploreItems(
+            types: ["park", "national_park", "campground"],
+            around: coordinate,
+            radius: 18_000
+        )
+        async let mountainsTask = fetchTextExploreItems(
+            query: "mountains and scenic viewpoints",
+            around: coordinate,
+            radius: 45_000
+        )
+        async let attractionsTask = fetchTextExploreItems(
+            query: "popular attractions and landmarks",
+            around: coordinate,
+            radius: 50_000
+        )
+
+        let (cafes, parks, mountains, attractions) = await (
+            (try? cafesTask) ?? [],
+            (try? parksTask) ?? [],
+            (try? mountainsTask) ?? [],
+            (try? attractionsTask) ?? []
+        )
+
+        return interleaveExploreItems(buckets: [mountains, cafes, parks, attractions])
+    }
+
+    func searchExplorePlaces(
+        query: String,
+        around coordinate: PlaceCoordinate
+    ) async throws -> [ExploreItem] {
+        return try await fetchTextExploreItems(
+            query: query,
+            around: coordinate,
+            radius: 40_000
+        )
+    }
+
+    private func fetchNearbyExploreItems(
+        types: [String],
+        around coordinate: PlaceCoordinate,
+        radius: Double
+    ) async throws -> [ExploreItem] {
+        let requestBody = NearbyRequest(
+            includedTypes: types,
+            maxResultCount: 20,
+            locationRestriction: .init(circle: .init(center: coordinate, radius: radius)),
+            rankPreference: .popularity
+        )
+        let response: PlaceSearchResponse = try await performSearch(
+            endpoint: "https://places.googleapis.com/v1/places:searchNearby",
+            body: requestBody
+        )
+        return (response.places ?? []).flatMap { $0.exploreItems() }
+    }
+
+    private func fetchTextExploreItems(
+        query: String,
+        around coordinate: PlaceCoordinate,
+        radius: Double
+    ) async throws -> [ExploreItem] {
+        let requestBody = TextSearchRequest(
+            textQuery: query,
+            locationBias: .init(circle: .init(center: coordinate, radius: radius)),
+            maxResultCount: 20
+        )
+        let response: PlaceSearchResponse = try await performSearch(
+            endpoint: "https://places.googleapis.com/v1/places:searchText",
+            body: requestBody
+        )
+        return (response.places ?? []).flatMap { $0.exploreItems() }
+    }
+
+    private func interleaveExploreItems(buckets: [[ExploreItem]]) -> [ExploreItem] {
+        var seenKeys = Set<String>()
+        var queues = buckets
+        var result: [ExploreItem] = []
+
+        var hasMore = true
+        while hasMore {
+            hasMore = false
+            for index in queues.indices {
+                if !queues[index].isEmpty {
+                    let item = queues[index].removeFirst()
+                    let key = item.placeId + "_" + item.photo.resourceName
+                    if seenKeys.insert(key).inserted {
+                        result.append(item)
+                    }
+                    if !queues[index].isEmpty {
+                        hasMore = true
+                    }
+                }
+            }
+        }
+
+        return result
     }
 
     private func performSearch<Request: Encodable>(
         endpoint: String,
         body: Request?
-    ) async throws -> [PlaceSummary] {
+    ) async throws -> PlaceSearchResponse {
         guard let url = URL(string: endpoint) else {
             throw URLError(.badURL)
         }
@@ -199,8 +340,7 @@ final class PlaceProvider: PlacesRepository, Sendable {
         )
         request.httpBody = try JSONEncoder().encode(body)
 
-        let response: PlaceSearchResponse = try await network.perform(request: request)
-        return (response.places ?? []).compactMap { $0.summary() }
+        return try await network.perform(request: request)
     }
     
     private func performFetch(
@@ -218,13 +358,7 @@ final class PlaceProvider: PlacesRepository, Sendable {
             "id,displayName,formattedAddress,location,types,primaryTypeDisplayName,googleMapsUri,internationalPhoneNumber,websiteUri,regularOpeningHours,rating,userRatingCount,priceLevel,reviews,photos",
             forHTTPHeaderField: "X-Goog-FieldMask"
         )
-        
 
-        let response: PlaceDDetail = try await network.perform(request: request)
-        return response
+        return try await network.perform(request: request)
     }
-    
-    
-    
-    
 }

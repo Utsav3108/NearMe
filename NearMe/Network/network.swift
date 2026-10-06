@@ -5,15 +5,19 @@
 //  Created by Utsav Hitendrabhai Pandya on 01/10/26.
 //
 
-let mapsAPI = Secrets.googleMapsAPIKey
-
 import Foundation
 
-class Network {
+/// An HTTP client responsible for executing network requests and decoding responses.
+///
+/// **Concurrency & Discipline:**
+/// Implemented as a `final class: Sendable` because its dependencies (`URLSession`) are immutable
+/// (`let session`) and inherently thread-safe. Being `Sendable` allows it to be injected safely into
+/// repositories and providers across concurrent tasks without introducing actor serialization bottlenecks.
+final class Network: Sendable {
     
-    var session: URLSession
+    let session: URLSession
     
-    init() {
+    nonisolated init() {
         let configuration = URLSessionConfiguration.default
 
         let cache = URLCache(
@@ -39,15 +43,13 @@ class Network {
         
         let datajson = try? JSONSerialization.jsonObject(with: data)
         
-        print("response json: ", datajson)
+        print("response json: ", datajson as Any)
         
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
 
         let result = try decoder.decode(T.self, from: data)
         
-        
         return result
     }
-
 }
